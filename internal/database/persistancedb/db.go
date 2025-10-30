@@ -1,40 +1,26 @@
 package persistancedb
 
 import (
-	"context"
-	"database/sql"
-	"fmt"
 
-	"github.com/filagot/emagne/internal/database"
-	_ "github.com/lib/pq"
+    database "github.com/filagot/emagne/internal/database"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type PersistenceDB struct {
-	*database.Queries
-	DB *sql.DB
+    *database.Queries
+	Pool      *pgxpool.Pool
 }
 
-func New(dbSource string) (*PersistenceDB, error) {
-	db, err := sql.Open("postgres", dbSource)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
-	}
+func New(pool *pgxpool.Pool) PersistenceDB {
+    return PersistenceDB{
+		Queries: database.New(pool),
+		Pool: pool,
 
-	// Test the connection
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	return &PersistenceDB{
-		Queries: database.New(db),
-		DB:      db,
-	}, nil
+}
 }
 
-func (p *PersistenceDB) Close() error {
-	return p.DB.Close()
+func (db *PersistenceDB) Close() error {
+	db.Close()
+	return nil
 }
 
-func (p *PersistenceDB) Ping(ctx context.Context) error {
-	return p.DB.PingContext(ctx)
-}

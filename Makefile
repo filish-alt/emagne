@@ -43,3 +43,4 @@ fmt:
 lint:
 	@echo "Linting code..."
 	@golangci-lint run
+

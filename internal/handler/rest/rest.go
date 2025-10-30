@@ -3,6 +3,7 @@ package rest
 import (
 	"net/http"
 
+	"github.com/filagot/emagne/internal/database/models/dto"
 	"github.com/filagot/emagne/internal/module"
 	"github.com/gin-gonic/gin"
 )
@@ -32,14 +33,14 @@ func NewHandler(authModule module.AuthModule) *Handler {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body module.RegisterRequest true "Registration request"
-// @Success 201 {object} module.AuthResponse
+// @Param request body dto.RegisterRequest true "Registration request"
+// @Success 201 {object} dto.AuthResponse
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /auth/register [post]
 func (h *Handler) Register(c *gin.Context) {
-	var req module.RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -64,14 +65,14 @@ func (h *Handler) Register(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body module.LoginRequest true "Login request"
-// @Success 200 {object} module.AuthResponse
+// @Param request body dto.LoginRequest true "Login request"
+// @Success 200 {object} dto.AuthResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
-	var req module.LoginRequest
+	var req dto.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -111,3 +112,4 @@ func (h *Handler) GetProfile(c *gin.Context) {
 		"user_role":  userRole,
 	})
 }
+

@@ -33,7 +33,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+	row := q.db.QueryRow(ctx, createUser,
 		arg.Email,
 		arg.PasswordHash,
 		arg.FirstName,
@@ -61,7 +61,7 @@ WHERE id = $1
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
 }
 
@@ -71,7 +71,7 @@ WHERE email = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -93,7 +93,7 @@ WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -121,7 +121,7 @@ type ListUsersParams struct {
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +144,6 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -156,10 +153,10 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
-    first_name = COALESCE($2, full_name),
-    last_name = COALESCE($2, full_name),
-    phone = COALESCE($3, phone),
-    is_verified = COALESCE($4, is_verified),
+    first_name = COALESCE($2, first_name),
+    last_name = COALESCE($3, last_name),
+    phone = COALESCE($4, phone),
+    is_verified = COALESCE($5, is_verified),
     updated_at = NOW()
 WHERE id = $1
 RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at
@@ -168,14 +165,16 @@ RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, c
 type UpdateUserParams struct {
 	ID         uuid.UUID      `json:"id"`
 	FirstName  string         `json:"first_name"`
+	LastName   string         `json:"last_name"`
 	Phone      sql.NullString `json:"phone"`
 	IsVerified sql.NullBool   `json:"is_verified"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUser,
+	row := q.db.QueryRow(ctx, updateUser,
 		arg.ID,
 		arg.FirstName,
+		arg.LastName,
 		arg.Phone,
 		arg.IsVerified,
 	)

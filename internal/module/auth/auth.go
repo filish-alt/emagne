@@ -7,9 +7,12 @@ import (
 	"fmt"
 
 	"github.com/filagot/emagne/internal/config"
+	"github.com/filagot/emagne/internal/database/models/dto"
 	"github.com/filagot/emagne/internal/module"
 	"github.com/filagot/emagne/internal/storage"
 	"github.com/filagot/emagne/pkg/utils"
+    "github.com/google/uuid"
+	
 )
 
 // AuthModule implements the module.AuthModule interface
@@ -27,7 +30,7 @@ func NewAuthModule(authStorage storage.AuthStorage, cfg *config.Config) module.A
 }
 
 // Register handles user registration
-func (m *AuthModule) Register(ctx context.Context, req *module.RegisterRequest) (*module.AuthResponse, error) {
+func (m *AuthModule) Register(ctx context.Context, req *dto.RegisterRequest) (*dto.AuthResponse, error) {
 	// Check if user already exists
 	_, err := m.authStorage.GetUserByEmail(ctx, req.Email)
 	if err == nil {
@@ -47,7 +50,7 @@ func (m *AuthModule) Register(ctx context.Context, req *module.RegisterRequest) 
 		phone.Valid = true
 	}
 
-	user, err := m.authStorage.CreateUser(ctx, &storage.CreateUserParams{
+	user, err := m.authStorage.CreateUser(ctx, dto.CreateUserParams{
 		Email:        req.Email,
 		PasswordHash: hashedPassword,
 		FirstName:    req.FirstName,
@@ -59,14 +62,18 @@ func (m *AuthModule) Register(ctx context.Context, req *module.RegisterRequest) 
 	}
 
 	// Generate token
-	token, err := utils.GenerateToken(user.ID, user.Email, "user", m.config.JWTSecret, m.config.JWTExpiration)
+    userUUID, err := uuid.Parse(user.ID)
+    if err != nil {
+        return nil, fmt.Errorf("invalid user id: %w", err)
+    }
+    token, err := utils.GenerateToken(userUUID, user.Email, "user", m.config.JWTSecret, m.config.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	return &module.AuthResponse{
+	return &dto.AuthResponse{
 		Token: token,
-		User: &module.User{
+		User: &dto.User{
 			ID:           user.ID,
 			Email:        user.Email,
 			PasswordHash: user.PasswordHash,
@@ -81,7 +88,7 @@ func (m *AuthModule) Register(ctx context.Context, req *module.RegisterRequest) 
 }
 
 // Login handles user login
-func (m *AuthModule) Login(ctx context.Context, req *module.LoginRequest) (*module.AuthResponse, error) {
+func (m *AuthModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.AuthResponse, error) {
 	// Get user by email
 	user, err := m.authStorage.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -94,14 +101,18 @@ func (m *AuthModule) Login(ctx context.Context, req *module.LoginRequest) (*modu
 	}
 
 	// Generate token
-	token, err := utils.GenerateToken(user.ID, user.Email, "user", m.config.JWTSecret, m.config.JWTExpiration)
+    userUUID, err := uuid.Parse(user.ID)
+    if err != nil {
+        return nil, fmt.Errorf("invalid user id: %w", err)
+    }
+    token, err := utils.GenerateToken(userUUID, user.Email, "user", m.config.JWTSecret, m.config.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	return &module.AuthResponse{
+	return &dto.AuthResponse{
 		Token: token,
-		User: &module.User{
+		User: &dto.User{
 			ID:           user.ID,
 			Email:        user.Email,
 			PasswordHash: user.PasswordHash,

@@ -15,7 +15,7 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		DBSource:          getEnv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/escrow?sslmode=disable"),
+		DBSource:          getEnv("DATABASE_URL", "postgresql://postgres:1234@localhost:5432/escrow?sslmode=disable"),
 		ServerAddress:     getEnv("SERVER_ADDRESS", ":8080"),
 		JWTSecret:         getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
 		JWTExpiration:     24 * time.Hour,

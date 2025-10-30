@@ -9,22 +9,19 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/filagot/emagne/initator/domain"
+	"github.com/filagot/emagne/initator/foundation"
 	"github.com/filagot/emagne/internal/config"
 	"github.com/filagot/emagne/internal/database/persistancedb"
-	"github.com/filagot/emagne/internal/handler/rest"
-	"github.com/filagot/emagne/internal/middleware"
-	"github.com/filagot/emagne/internal/module/auth"
-	"github.com/filagot/emagne/internal/storage/auth"
 	"github.com/gin-gonic/gin"
 )
 
 // App represents the application dependencies
 type App struct {
 	Config      *config.Config
-	DB          *persistancedb.PersistenceDB
-	AuthStorage storage.AuthStorage
-	AuthModule  module.AuthModule
-	Handler     *rest.Handler
+	AuthStorage domain.PersistanceLayer
+	AuthModule  *domain.Module
+	Handler     *domain.Handler
 	Router      *gin.Engine
 	Server      *http.Server
 }
@@ -34,25 +31,25 @@ func NewApp() (*App, error) {
 	// Load configuration
 	cfg := config.Load()
 
-	// Initialize database
-	db, err := persistancedb.New(cfg.DBSource)
-	if err != nil {
-		return nil, err
-	}
+	// Run database migrations first
+	InitiateMigration(cfg)
 
-	// Test database connection
-	if err := db.Ping(context.Background()); err != nil {
-		return nil, err
-	}
+	// Initialize database
+	log.Println("Initializing database...")
+	pgxConn := foundation.InitDB(cfg.DBSource)
+	log.Println("Database initialized")
+
+	// Initialize persistence layer
+
 
 	// Initialize storage layer
-	authStorage := auth.NewAuthStorage(db.Queries)
+	persistanceLayer := domain.InitPersistance(persistancedb.New(pgxConn))
 
 	// Initialize module layer
-	authModule := auth.NewAuthModule(authStorage, cfg)
+	moduleLayer := domain.InitModule(persistanceLayer, cfg)
 
 	// Initialize handler layer
-	handler := rest.NewHandler(authModule)
+	handler := domain.InitHandler(moduleLayer)
 
 	// Initialize Gin router
 	router := gin.Default()
@@ -71,8 +68,8 @@ func NewApp() (*App, error) {
 		c.Next()
 	})
 
-	// Setup routes
-	setupRoutes(router, handler, cfg)
+	// Setup routes using domain routing
+	domain.InitiateRouting(router, handler, cfg)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -82,35 +79,28 @@ func NewApp() (*App, error) {
 
 	return &App{
 		Config:      cfg,
-		DB:          db,
-		AuthStorage: authStorage,
-		AuthModule:  authModule,
+		AuthStorage: *persistanceLayer,
+		AuthModule:  moduleLayer,
 		Handler:     handler,
 		Router:      router,
 		Server:      server,
 	}, nil
 }
 
-// setupRoutes configures all the application routes
-func setupRoutes(router *gin.Engine, handler *rest.Handler, cfg *config.Config) {
-	// Health check endpoint
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
-
-	// Auth routes
-	authGroup := router.Group("/auth")
-	{
-		authGroup.POST("/register", handler.Register)
-		authGroup.POST("/login", handler.Login)
-	}
-
-	// Protected routes
-	protected := router.Group("/api")
-	protected.Use(middleware.AuthMiddleware(cfg))
-	{
-		protected.GET("/profile", handler.GetProfile)
-	}
+// InitiateMigration runs database migrations
+func InitiateMigration(cfg *config.Config) {
+	log.Println("Starting database migration...")
+	
+	// Set migration path
+	migrationPath := "db/migrations"
+	
+	// Create migration instance
+	m := foundation.InitiateMigration(migrationPath, cfg.DBSource)
+	
+	// Run migrations
+	foundation.UpMigration(m)
+	
+	log.Println("Database migration completed successfully!")
 }
 
 // Start starts the application server
@@ -139,14 +129,10 @@ func (app *App) Start() {
 	}
 
 	// Close database connection
-	if err := app.DB.Close(); err != nil {
-		log.Printf("Error closing database: %v", err)
-	}
 
+	
 	log.Println("Server exited")
 }
 
-// Close gracefully closes the application
-func (app *App) Close() error {
-	return app.DB.Close()
-}
+
+

@@ -9,7 +9,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
+type AuthMiddleware interface {
+	Authorize() gin.HandlerFunc
+
+}
+
+type authMiddleware struct{
+	cfg *config.Config
+}	
+
+func InitAuthMiddleware(cfg *config.Config) AuthMiddleware{
+	return &authMiddleware{
+		cfg: cfg,
+	}
+}
+func (a *authMiddleware) Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -29,17 +43,17 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Verify the token
-		claims, err := utils.VerifyToken(tokenString, cfg.JWTSecret)
+		claims, err := utils.VerifyToken(tokenString, a.cfg.JWTSecret)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
 
-		// Set user information in context
-		c.Set("user_id", claims.UserID)
-		c.Set("user_email", claims.Email)
-		c.Set("user_role", claims.Role)
+        // Set user information in context as strings for easy retrieval
+        c.Set("user_id", claims.UserID.String())
+        c.Set("user_email", claims.Email)
+        c.Set("user_role", claims.Role)
 
 		c.Next()
 	}

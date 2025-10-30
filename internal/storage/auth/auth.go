@@ -1,30 +1,31 @@
 package auth
 
 import (
-	"context"
-	"database/sql"
-	"fmt"
+    "context"
+    "fmt"
 
-	"github.com/filagot/emagne/internal/database"
+    db "github.com/filagot/emagne/internal/database"
+    "github.com/filagot/emagne/internal/database/models/dto"
+	persistancedb "github.com/filagot/emagne/internal/database/persistancedb"
+    "github.com/google/uuid"
 	"github.com/filagot/emagne/internal/storage"
-	"github.com/google/uuid"
 )
 
 // AuthStorage implements the storage.AuthStorage interface
 type AuthStorage struct {
-	queries *database.Queries
+   persistanceQueries persistancedb.PersistenceDB
 }
 
 // NewAuthStorage creates a new auth storage instance
-func NewAuthStorage(queries *database.Queries) storage.AuthStorage {
+func NewAuthStorage(persistanceQueries persistancedb.PersistenceDB) storage.AuthStorage {
 	return &AuthStorage{
-		queries: queries,
+		persistanceQueries: persistanceQueries,
 	}
 }
 
 // CreateUser creates a new user in the database
-func (s *AuthStorage) CreateUser(ctx context.Context, user *storage.CreateUserParams) (*storage.User, error) {
-	dbUser, err := s.queries.CreateUser(ctx, database.CreateUserParams{
+func (s *AuthStorage) CreateUser(ctx context.Context, user dto.CreateUserParams) (*dto.User, error) {
+    dbUser, err := s.persistanceQueries.CreateUser(ctx, db.CreateUserParams{
 		Email:        user.Email,
 		PasswordHash: user.PasswordHash,
 		FirstName:    user.FirstName,
@@ -35,7 +36,7 @@ func (s *AuthStorage) CreateUser(ctx context.Context, user *storage.CreateUserPa
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	return &storage.User{
+	return &dto.User{
 		ID:           dbUser.ID.String(),
 		Email:        dbUser.Email,
 		PasswordHash: dbUser.PasswordHash,
@@ -49,13 +50,13 @@ func (s *AuthStorage) CreateUser(ctx context.Context, user *storage.CreateUserPa
 }
 
 // GetUserByEmail retrieves a user by email
-func (s *AuthStorage) GetUserByEmail(ctx context.Context, email string) (*storage.User, error) {
-	dbUser, err := s.queries.GetUserByEmail(ctx, email)
+func (s *AuthStorage) GetUserByEmail(ctx context.Context, email string) (*dto.User, error) {
+	dbUser, err := s.persistanceQueries.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
-	return &storage.User{
+	return &dto.User{
 		ID:           dbUser.ID.String(),
 		Email:        dbUser.Email,
 		PasswordHash: dbUser.PasswordHash,
@@ -69,18 +70,18 @@ func (s *AuthStorage) GetUserByEmail(ctx context.Context, email string) (*storag
 }
 
 // GetUserByID retrieves a user by ID
-func (s *AuthStorage) GetUserByID(ctx context.Context, id string) (*storage.User, error) {
+func (s *AuthStorage) GetUserByID(ctx context.Context, id string) (*dto.User, error) {
 	userID, err := uuid.Parse(id)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	dbUser, err := s.queries.GetUserByID(ctx, userID)
+	dbUser, err := s.persistanceQueries.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
-	return &storage.User{
+	return &dto.User{
 		ID:           dbUser.ID.String(),
 		Email:        dbUser.Email,
 		PasswordHash: dbUser.PasswordHash,
@@ -94,13 +95,13 @@ func (s *AuthStorage) GetUserByID(ctx context.Context, id string) (*storage.User
 }
 
 // UpdateUser updates a user in the database
-func (s *AuthStorage) UpdateUser(ctx context.Context, user *storage.UpdateUserParams) (*storage.User, error) {
+func (s *AuthStorage) UpdateUser(ctx context.Context, user *dto.UpdateUserParams) (*dto.User, error) {
 	userID, err := uuid.Parse(user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	dbUser, err := s.queries.UpdateUser(ctx, database.UpdateUserParams{
+	dbUser, err := s.persistanceQueries.UpdateUser(ctx, db.UpdateUserParams{
 		ID:         userID,
 		FirstName:  user.FirstName,
 		Phone:      user.Phone,
@@ -110,7 +111,7 @@ func (s *AuthStorage) UpdateUser(ctx context.Context, user *storage.UpdateUserPa
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	return &storage.User{
+	return &dto.User{
 		ID:           dbUser.ID.String(),
 		Email:        dbUser.Email,
 		PasswordHash: dbUser.PasswordHash,
@@ -130,5 +131,6 @@ func (s *AuthStorage) DeleteUser(ctx context.Context, id string) error {
 		return fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	return s.queries.DeleteUser(ctx, userID)
+	return s.persistanceQueries.DeleteUser(ctx, userID)
 }
+

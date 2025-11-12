@@ -2,6 +2,7 @@ package domain
 
 import (
 	"github.com/filagot/emagne/internal/handler/rest"
+	"github.com/filagot/emagne/internal/handler/rest/auth"
 )
 
 type Handler struct {
@@ -10,6 +11,6 @@ type Handler struct {
 
 func InitHandler(modules *Module) *Handler {
 	return &Handler{
-        AuthHandler: rest.NewHandler(modules.UserAuth),
+        AuthHandler: auth.Init(modules.UserAuth),
 	}
 }

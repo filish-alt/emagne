@@ -125,3 +125,7 @@ func (m *AuthModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Aut
 		},
 	}, nil
 }
+
+func (m *AuthModule) UpdateUser(ctx context.Context, req *dto.UpdateUserParams)(*dto.UpdateUserParams, error) {
+       
+}

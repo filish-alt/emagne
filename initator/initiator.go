@@ -50,10 +50,10 @@ func NewApp() (*App, error) {
 
 	// Initialize handler layer
 	handler := domain.InitHandler(moduleLayer)
-
+    
 	// Initialize Gin router
-	router := gin.Default()
-
+	router := gin.New()
+    //server := gin.New()
 	// Add CORS middleware
 	router.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
@@ -67,12 +67,12 @@ func NewApp() (*App, error) {
 		
 		c.Next()
 	})
-
+     mainGroup := router.Group("/api").Group("/v2")
 	// Setup routes using domain routing
-	domain.InitiateRouting(router, handler, cfg)
+	domain.InitiateRouting(mainGroup,router, handler, cfg)
 
 	// Create HTTP server
-	server := &http.Server{
+	srv := &http.Server{
 		Addr:    cfg.ServerAddress,
 		Handler: router,
 	}
@@ -83,7 +83,7 @@ func NewApp() (*App, error) {
 		AuthModule:  moduleLayer,
 		Handler:     handler,
 		Router:      router,
-		Server:      server,
+		Server:      srv,
 	}, nil
 }
 

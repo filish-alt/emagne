@@ -126,6 +126,50 @@ func (m *AuthModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Aut
 	}, nil
 }
 
-func (m *AuthModule) UpdateUser(ctx context.Context, req *dto.UpdateUserParams)(*dto.UpdateUserParams, error) {
-       
+// UpdateUser updates the authenticated user's profile
+func (m *AuthModule) UpdateUser(ctx context.Context, userID string, req *dto.UpdateUserRequest) (*dto.User, error) {
+	if userID == "" {
+		return nil, errors.New("user id is required")
+	}
+	if req == nil {
+		return nil, errors.New("update request is required")
+	}
+
+	params := &dto.UpdateUserParams{
+		ID: userID,
+	}
+
+	if req.FirstName != nil {
+		params.FirstName = sql.NullString{String: *req.FirstName, Valid: true}
+	}
+
+	if req.LastName != nil {
+		params.LastName = sql.NullString{String: *req.LastName, Valid: true}
+	}
+
+	if req.Phone != nil {
+		params.Phone = sql.NullString{String: *req.Phone, Valid: true}
+	}
+
+	updatedUser, err := m.authStorage.UpdateUser(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedUser, nil
 }
+
+// GetUserByID retrieves a user by ID
+func (m *AuthModule) GetUserByID(ctx context.Context, userID string) (*dto.User, error) {
+	if userID == "" {
+		return nil, errors.New("user id is required")
+	}
+
+	user, err := m.authStorage.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+

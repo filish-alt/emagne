@@ -1,31 +1,30 @@
 package auth
 
 import (
-    "context"
-    "fmt"
+	"context"
+	"fmt"
 
-    db "github.com/filagot/emagne/internal/database"
-    "github.com/filagot/emagne/internal/database/models/dto"
-	persistancedb "github.com/filagot/emagne/internal/database/persistancedb"
-    "github.com/google/uuid"
+	db "github.com/filagot/emagne/internal/database"
+	"github.com/filagot/emagne/internal/database/models/dto"
 	"github.com/filagot/emagne/internal/storage"
+	"github.com/google/uuid"
 )
 
 // AuthStorage implements the storage.AuthStorage interface
 type AuthStorage struct {
-   persistanceQueries persistancedb.PersistenceDB
+	queries *db.Queries
 }
 
 // NewAuthStorage creates a new auth storage instance
-func NewAuthStorage(persistanceQueries persistancedb.PersistenceDB) storage.AuthStorage {
+func NewAuthStorage(queries *db.Queries) storage.AuthStorage {
 	return &AuthStorage{
-		persistanceQueries: persistanceQueries,
+		queries: queries,
 	}
 }
 
 // CreateUser creates a new user in the database
 func (s *AuthStorage) CreateUser(ctx context.Context, user dto.CreateUserParams) (*dto.User, error) {
-    dbUser, err := s.persistanceQueries.CreateUser(ctx, db.CreateUserParams{
+	dbUser, err := s.queries.CreateUser(ctx, db.CreateUserParams{
 		Email:        user.Email,
 		PasswordHash: user.PasswordHash,
 		FirstName:    user.FirstName,
@@ -51,7 +50,7 @@ func (s *AuthStorage) CreateUser(ctx context.Context, user dto.CreateUserParams)
 
 // GetUserByEmail retrieves a user by email
 func (s *AuthStorage) GetUserByEmail(ctx context.Context, email string) (*dto.User, error) {
-	dbUser, err := s.persistanceQueries.GetUserByEmail(ctx, email)
+	dbUser, err := s.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
@@ -76,7 +75,7 @@ func (s *AuthStorage) GetUserByID(ctx context.Context, id string) (*dto.User, er
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	dbUser, err := s.persistanceQueries.GetUserByID(ctx, userID)
+	dbUser, err := s.queries.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
@@ -101,9 +100,10 @@ func (s *AuthStorage) UpdateUser(ctx context.Context, user *dto.UpdateUserParams
 		return nil, fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	dbUser, err := s.persistanceQueries.UpdateUser(ctx, db.UpdateUserParams{
+	dbUser, err := s.queries.UpdateUser(ctx, db.UpdateUserParams{
 		ID:         userID,
 		FirstName:  user.FirstName,
+		LastName:   user.LastName,
 		Phone:      user.Phone,
 		IsVerified: user.IsVerified,
 	})
@@ -131,6 +131,6 @@ func (s *AuthStorage) DeleteUser(ctx context.Context, id string) error {
 		return fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	return s.persistanceQueries.DeleteUser(ctx, userID)
+	return s.queries.DeleteUser(ctx, userID)
 }
 

@@ -164,8 +164,8 @@ RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, c
 
 type UpdateUserParams struct {
 	ID         uuid.UUID      `json:"id"`
-	FirstName  string         `json:"first_name"`
-	LastName   string         `json:"last_name"`
+	FirstName  sql.NullString `json:"first_name"`
+	LastName   sql.NullString `json:"last_name"`
 	Phone      sql.NullString `json:"phone"`
 	IsVerified sql.NullBool   `json:"is_verified"`
 }

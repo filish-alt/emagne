@@ -24,11 +24,20 @@ func InitRoutes(
             Handler: handler.Login,
         },
           {
-            Method:  "POST",
+            Method:  "GET",
             Path:    "/profile",
-            Handler: handler.Login,
+            Handler: handler.GetProfile,
             Middlewares: []gin.HandlerFunc{
                 authMiddleware.Authorize(),
+            },
+        },
+          {
+            Method:  "PUT",
+            Path:    "/profile",
+            Handler: handler.UpdateProfile,
+            Middlewares: []gin.HandlerFunc{
+                authMiddleware.Authorize(),
+                middleware.UserIDFromHeader(),
             },
         },
     }

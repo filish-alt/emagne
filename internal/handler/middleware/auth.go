@@ -50,10 +50,8 @@ func (a *authMiddleware) Authorize() gin.HandlerFunc {
 			return
 		}
 
-        // Set user information in context as strings for easy retrieval
-        c.Set("user_id", claims.UserID.String())
-        c.Set("user_email", claims.Email)
-        c.Set("user_role", claims.Role)
+		// Set user information in context as strings for easy retrieval
+		SetUserContext(c, claims.UserID.String(), claims.Email, claims.Role)
 
 		c.Next()
 	}

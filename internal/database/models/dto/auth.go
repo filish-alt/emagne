@@ -15,11 +15,11 @@ type CreateUserParams struct {
 
 // UpdateUserParams represents parameters for updating a user
 type UpdateUserParams struct {
-	ID          string
-	FirstName   string
-	LastName    string
-	Phone       sql.NullString
-	IsVerified  sql.NullBool
+	ID         string
+	FirstName  sql.NullString
+	LastName   sql.NullString
+	Phone      sql.NullString
+	IsVerified sql.NullBool
 }
 
 // User represents a user entity in storage layer
@@ -54,4 +54,11 @@ type LoginRequest struct {
 type AuthResponse struct {
 	Token string `json:"token"`
 	User  *User  `json:"user"`
+}
+
+// UpdateUserRequest represents payload for updating user profile
+type UpdateUserRequest struct {
+	FirstName *string `json:"first_name"`
+	LastName  *string `json:"last_name"`
+	Phone     *string `json:"phone"`
 }

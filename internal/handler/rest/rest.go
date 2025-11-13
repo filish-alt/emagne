@@ -9,5 +9,6 @@ type AuthHandler interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
 	GetProfile(c *gin.Context)
+	UpdateProfile(c *gin.Context)
 }
 

@@ -14,17 +14,7 @@ func InitiateRouting(
     handler *Handler, 
     cfg *config.Config) {
     authMw := middleware.InitAuthMiddleware(cfg)
-    apiGroup := router.Group("/api")
-    auth.InitRoutes(apiGroup,handler.AuthHandler, authMw)
-    // authGroup := router.Group("/auth")
-    // {
-    //     authGroup.POST("/register", handler.AuthHandler.Register)
-    //     authGroup.POST("/login", handler.AuthHandler.Login)
-    // }
-
-    // apiGroup := router.Group("/api")
-    // apiGroup.Use(authMw.Authorize())
-    // {
-    //     apiGroup.GET("/profile", handler.AuthHandler.GetProfile)
-    // }
+   // apiGroup := router.Group("/api")
+    auth.InitRoutes(group,handler.AuthHandler, authMw)
+   
 }

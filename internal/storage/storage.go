@@ -2,7 +2,8 @@ package storage
 
 import (
 	"context"
-	 "github.com/filagot/emagne/internal/database/models/dto"
+
+	"github.com/filagot/emagne/internal/database/models/dto"
 )
 
 // AuthStorage defines the interface for authentication data operations

@@ -67,7 +67,7 @@ func NewApp() (*App, error) {
 		
 		c.Next()
 	})
-     mainGroup := router.Group("/api").Group("/v2")
+     mainGroup := router.Group("/api")
 	// Setup routes using domain routing
 	domain.InitiateRouting(mainGroup,router, handler, cfg)
 

@@ -12,6 +12,6 @@ type PersistanceLayer struct {
 
 func InitPersistance(db persistancedb.PersistenceDB) *PersistanceLayer {
 	return &PersistanceLayer{
-		AuthStorage: auth.NewAuthStorage(db),
+		AuthStorage: auth.NewAuthStorage(db.Queries),
 	}
 }

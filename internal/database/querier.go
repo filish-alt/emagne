@@ -11,11 +11,20 @@ import (
 )
 
 type Querier interface {
+	CreateItemCategory(ctx context.Context, arg CreateItemCategoryParams) (ItemCategory, error)
+	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteItemCategory(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	GetItemCategoryByID(ctx context.Context, id uuid.UUID) (ItemCategory, error)
+	GetTransactionWithCategory(ctx context.Context, id uuid.UUID) (GetTransactionWithCategoryRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	ListItemCategories(ctx context.Context) ([]ItemCategory, error)
+	ListTransactionsByCategory(ctx context.Context, arg ListTransactionsByCategoryParams) ([]ListTransactionsByCategoryRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	UpdateItemCategory(ctx context.Context, arg UpdateItemCategoryParams) (ItemCategory, error)
+	UpdateTransactionStatus(ctx context.Context, arg UpdateTransactionStatusParams) (Transaction, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

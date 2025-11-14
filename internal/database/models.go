@@ -6,10 +6,82 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
+
+type Role string
+
+const (
+	RoleBuyer  Role = "Buyer"
+	RoleSeller Role = "Seller"
+	RoleBroker Role = "Broker"
+)
+
+func (e *Role) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Role(s)
+	case string:
+		*e = Role(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Role: %T", src)
+	}
+	return nil
+}
+
+type NullRole struct {
+	Role  Role `json:"role"`
+	Valid bool `json:"valid"` // Valid is true if Role is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRole) Scan(value interface{}) error {
+	if value == nil {
+		ns.Role, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Role.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRole) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Role), nil
+}
+
+type ItemCategory struct {
+	ID          uuid.UUID      `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+}
+
+type Transaction struct {
+	ID               uuid.UUID       `json:"id"`
+	Title            sql.NullString  `json:"title"`
+	Role             Role            `json:"role"`
+	Currency         string          `json:"currency"`
+	InspectionPeriod sql.NullString  `json:"inspection_period"`
+	ItemCategoryID   uuid.UUID       `json:"item_category_id"`
+	ItemName         string          `json:"item_name"`
+	ItemDescription  sql.NullString  `json:"item_description"`
+	Price            decimal.Decimal `json:"price"`
+	ShippingMethod   sql.NullString  `json:"shipping_method"`
+	SellerEmail      string          `json:"seller_email"`
+	SellerPhone      sql.NullString  `json:"seller_phone"`
+	BuyerEmail       string          `json:"buyer_email"`
+	BuyerPhone       sql.NullString  `json:"buyer_phone"`
+	Status           sql.NullString  `json:"status"`
+	CreatedAt        sql.NullTime    `json:"created_at"`
+	UpdatedAt        sql.NullTime    `json:"updated_at"`
+}
 
 type User struct {
 	ID           uuid.UUID      `json:"id"`

@@ -102,8 +102,8 @@ func (s *AuthStorage) UpdateUser(ctx context.Context, user *dto.UpdateUserParams
 
 	dbUser, err := s.queries.UpdateUser(ctx, db.UpdateUserParams{
 		ID:         userID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
+		FirstName:  user.FirstName.String,
+		LastName:   user.LastName.String,
 		Phone:      user.Phone,
 		IsVerified: user.IsVerified,
 	})

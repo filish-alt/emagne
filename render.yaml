@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: emagne
+    env: go
+    buildCommand: go build -o app cmd/main.go
+    startCommand: ./app
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true

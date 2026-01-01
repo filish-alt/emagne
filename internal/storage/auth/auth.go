@@ -24,12 +24,18 @@ func NewAuthStorage(queries *db.Queries) storage.AuthStorage {
 
 // CreateUser creates a new user in the database
 func (s *AuthStorage) CreateUser(ctx context.Context, user dto.CreateUserParams) (*dto.User, error) {
+	role := user.Role
+	if role == "" {
+		role = "user"
+	}
+
 	dbUser, err := s.queries.CreateUser(ctx, db.CreateUserParams{
 		Email:        user.Email,
 		PasswordHash: user.PasswordHash,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Phone:        user.Phone,
+		Role:         role,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -45,6 +51,7 @@ func (s *AuthStorage) CreateUser(ctx context.Context, user dto.CreateUserParams)
 		IsVerified:   dbUser.IsVerified,
 		CreatedAt:    dbUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:    dbUser.UpdatedAt.Format("2006-01-02 15:04:05"),
+		Role:         dbUser.Role,
 	}, nil
 }
 
@@ -65,6 +72,7 @@ func (s *AuthStorage) GetUserByEmail(ctx context.Context, email string) (*dto.Us
 		IsVerified:   dbUser.IsVerified,
 		CreatedAt:    dbUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:    dbUser.UpdatedAt.Format("2006-01-02 15:04:05"),
+		Role:         dbUser.Role,
 	}, nil
 }
 
@@ -90,6 +98,7 @@ func (s *AuthStorage) GetUserByID(ctx context.Context, id string) (*dto.User, er
 		IsVerified:   dbUser.IsVerified,
 		CreatedAt:    dbUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:    dbUser.UpdatedAt.Format("2006-01-02 15:04:05"),
+		Role:         dbUser.Role,
 	}, nil
 }
 
@@ -121,6 +130,7 @@ func (s *AuthStorage) UpdateUser(ctx context.Context, user *dto.UpdateUserParams
 		IsVerified:   dbUser.IsVerified,
 		CreatedAt:    dbUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:    dbUser.UpdatedAt.Format("2006-01-02 15:04:05"),
+		Role:         dbUser.Role,
 	}, nil
 }
 
@@ -133,4 +143,3 @@ func (s *AuthStorage) DeleteUser(ctx context.Context, id string) error {
 
 	return s.queries.DeleteUser(ctx, userID)
 }
-

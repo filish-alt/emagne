@@ -1,0 +1,303 @@
+{
+  "info": {
+    "name": "Emagne API",
+    "description": "Postman collection to test Auth, Categories, Transactions, and Attributes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "token", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "transactionId", "value": "" },
+    { "key": "attributeId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Passw0rd!\",\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created', function () { pm.response.to.have.status(201); });",
+                  "let json = pm.response.json(); if (json && json.user && json.user.id) { pm.collectionVariables.set('userId', json.user.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@emagne.com\",\n  \"password\": \"admin123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('OK', function () { pm.response.to.have.status(200); });",
+                  "let json = pm.response.json(); if (json && json.token) { pm.collectionVariables.set('adminToken', json.token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Passw0rd!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('OK', function () { pm.response.to.have.status(200); });",
+                  "let json = pm.response.json(); if (json && json.token) { pm.collectionVariables.set('token', json.token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/profile", "host": ["{{baseUrl}}"], "path": ["api", "profile"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["pm.test('OK', function () { pm.response.to.have.status(200); });"] }
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/profile", "host": ["{{baseUrl}}"], "path": ["api", "profile"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Janet\",\n  \"last_name\": \"Doe\",\n  \"phone\": \"+251900000000\"\n}"
+            }
+          },
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('OK', function () { pm.response.to.have.status(200); });"] } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Devices and gadgets\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created', function () { pm.response.to.have.status(201); });",
+                  "let j = pm.response.json(); if (j && j.id) { pm.collectionVariables.set('categoryId', j.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Categories",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/categories", "host": ["{{baseUrl}}"], "path": ["categories"] } }
+        },
+        {
+          "name": "Get Category",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] } }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Updated description\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": { "method": "DELETE", "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}"] } }
+        },
+        {
+          "name": "Create Category Attribute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}/attributes", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}", "attributes"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Color\",\n  \"data_type\": \"string\",\n  \"is_required\": true\n}" }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": ["let j = pm.response.json(); if (j && j.id) { pm.collectionVariables.set('attributeId', j.id); }"] }
+            }
+          ]
+        },
+        {
+          "name": "List Category Attributes",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}/attributes", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}", "attributes"] } }
+        },
+        {
+          "name": "Get Category Attribute By Name",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/categories/{{categoryId}}/attributes/Color", "host": ["{{baseUrl}}"], "path": ["categories", "{{categoryId}}", "attributes", "Color"] } }
+        },
+        {
+          "name": "Delete Category Attribute",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/categories/attributes/{{attributeId}}", "host": ["{{baseUrl}}"], "path": ["categories", "attributes", "{{attributeId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transactions", "host": ["{{baseUrl}}"], "path": ["transactions"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Phone Escrow\",\n  \"role\": \"Buyer\",\n  \"currency\": \"ETB\",\n  \"inspection_period\": \"7 days\",\n  \"item_catagory_id\": \"{{categoryId}}\",\n  \"item_name\": \"iPhone 13\",\n  \"item_description\": \"Like new\",\n  \"price\": \"19999.00\",\n  \"shipping_method\": \"Courier\",\n  \"seller_email\": \"seller@example.com\",\n  \"seller_phone\": \"+251911111111\",\n  \"buyer_email\": \"buyer@example.com\",\n  \"buyer_phone\": \"+251922222222\",\n  \"attributes\": [\n    {\n      \"attribute_id\": \"{{attributeId}}\",\n      \"value\": \"Blue\"\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Created', function () { pm.response.to.have.status(201); });",
+                  "let j = pm.response.json(); if (j && j.id) { pm.collectionVariables.set('transactionId', j.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Transaction",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/transactions/{{transactionId}}", "host": ["{{baseUrl}}"], "path": ["transactions", "{{transactionId}}"] }
+          }
+        },
+        {
+          "name": "List Transactions By Category",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categories/{{categoryId}}/transactions?limit=20&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "{{categoryId}}", "transactions"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Transaction Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/transactions/{{transactionId}}/status", "host": ["{{baseUrl}}"], "path": ["transactions", "{{transactionId}}", "status"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"Shipped\"\n}" }
+          }
+        },
+        {
+          "name": "Add Transaction Attribute",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/transactions/{{transactionId}}/attributes", "host": ["{{baseUrl}}"], "path": ["transactions", "{{transactionId}}", "attributes"] },
+            "body": { "mode": "raw", "raw": "{\n  \"attribute_id\": \"{{attributeId}}\",\n  \"value\": \"Black\"\n}" }
+          }
+        },
+        {
+          "name": "List Transaction Attributes",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/transactions/{{transactionId}}/attributes", "host": ["{{baseUrl}}"], "path": ["transactions", "{{transactionId}}", "attributes"] } }
+        },
+        {
+          "name": "Get Transaction Attribute",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/transactions/{{transactionId}}/attributes/{{attributeId}}", "host": ["{{baseUrl}}"], "path": ["transactions", "{{transactionId}}", "attributes", "{{attributeId}}"] } }
+        },
+        {
+          "name": "Delete Transaction Attributes",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/transactions/{{transactionId}}/attributes", "host": ["{{baseUrl}}"], "path": ["transactions", "{{transactionId}}", "attributes"] }
+          }
+        }
+      ]
+    }
+  ]
+}

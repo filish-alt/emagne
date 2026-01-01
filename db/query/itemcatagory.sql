@@ -1,5 +1,5 @@
 -- name: CreateItemCategory :one
-INSERT INTO item_category (
+INSERT INTO item_categories (
     name,
     description
 ) VALUES (
@@ -8,17 +8,23 @@ INSERT INTO item_category (
 
 -- name: GetItemCategoryByID :one
 SELECT *
-FROM item_category
-WHERE id = $1
+FROM item_categories
+WHERE id = $1 
 LIMIT 1;
+
+-- name: GetItemCategoryByName :one
+SELECT *
+FROM item_categories
+WHERE name = $1;
+
 
 -- name: ListItemCategories :many
 SELECT *
-FROM item_category
+FROM item_categories
 ORDER BY name ASC;
 
 -- name: UpdateItemCategory :one
-UPDATE item_category
+UPDATE item_categories
 SET
     name = COALESCE($2, name),
     description = COALESCE($3, description)
@@ -26,6 +32,6 @@ WHERE id = $1
 RETURNING *;
 
 -- name: DeleteItemCategory :exec
-DELETE FROM item_category
+DELETE FROM item_categories
 WHERE id = $1;
 

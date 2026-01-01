@@ -32,7 +32,7 @@ func NewApp() (*App, error) {
 	cfg := config.Load()
 
 	// Run database migrations first
-	InitiateMigration(cfg)
+	//InitiateMigration(cfg)
 
 	// Initialize database
 	log.Println("Initializing database...")
@@ -40,7 +40,6 @@ func NewApp() (*App, error) {
 	log.Println("Database initialized")
 
 	// Initialize persistence layer
-
 
 	// Initialize storage layer
 	persistanceLayer := domain.InitPersistance(persistancedb.New(pgxConn))
@@ -50,26 +49,31 @@ func NewApp() (*App, error) {
 
 	// Initialize handler layer
 	handler := domain.InitHandler(moduleLayer)
-    
+
 	// Initialize Gin router
 	router := gin.New()
-    //server := gin.New()
+	//server := gin.New()
 	// Add CORS middleware
 	router.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		origin := cfg.FrontendOrigin
+		if origin == "" {
+			origin = "*"
+		}
+		c.Header("Access-Control-Allow-Origin", origin)
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		
+		if origin != "*" {
+			c.Header("Vary", "Origin")
+		}
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
-		
 		c.Next()
 	})
-     mainGroup := router.Group("/api")
+	mainGroup := router.Group("/api")
 	// Setup routes using domain routing
-	domain.InitiateRouting(mainGroup,router, handler, cfg)
+	domain.InitiateRouting(mainGroup, router, handler, cfg)
 
 	// Create HTTP server
 	srv := &http.Server{
@@ -90,16 +94,16 @@ func NewApp() (*App, error) {
 // InitiateMigration runs database migrations
 func InitiateMigration(cfg *config.Config) {
 	log.Println("Starting database migration...")
-	
+
 	// Set migration path
 	migrationPath := "db/migrations"
-	
+
 	// Create migration instance
 	m := foundation.InitiateMigration(migrationPath, cfg.DBSource)
-	
+
 	// Run migrations
 	foundation.UpMigration(m)
-	
+
 	log.Println("Database migration completed successfully!")
 }
 
@@ -130,9 +134,5 @@ func (app *App) Start() {
 
 	// Close database connection
 
-	
 	log.Println("Server exited")
 }
-
-
-

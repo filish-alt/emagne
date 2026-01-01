@@ -18,10 +18,11 @@ INSERT INTO users (
     password_hash,
     first_name,
     last_name,
-    phone
+    phone,
+    role
 ) VALUES (
-    $1, $2, $3, $4, $5
-) RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at, role
 `
 
 type CreateUserParams struct {
@@ -30,6 +31,7 @@ type CreateUserParams struct {
 	FirstName    string         `json:"first_name"`
 	LastName     string         `json:"last_name"`
 	Phone        sql.NullString `json:"phone"`
+	Role         string         `json:"role"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -39,6 +41,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.FirstName,
 		arg.LastName,
 		arg.Phone,
+		arg.Role,
 	)
 	var i User
 	err := row.Scan(
@@ -51,6 +54,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
 	)
 	return i, err
 }
@@ -66,7 +70,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at FROM users
+SELECT id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at, role FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -83,12 +87,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at FROM users
+SELECT id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at, role FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -105,12 +110,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at FROM users
+SELECT id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at, role FROM users
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -139,6 +145,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.IsVerified,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Role,
 		); err != nil {
 			return nil, err
 		}
@@ -159,7 +166,7 @@ SET
     is_verified = COALESCE($5, is_verified),
     updated_at = NOW()
 WHERE id = $1
-RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at
+RETURNING id, email, password_hash, first_name, last_name, phone, is_verified, created_at, updated_at, role
 `
 
 type UpdateUserParams struct {
@@ -189,6 +196,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.IsVerified,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Role,
 	)
 	return i, err
 }

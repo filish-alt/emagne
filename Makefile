@@ -7,7 +7,7 @@ all: migrate run
 migrate:
 	@echo "Running database migrations..."
 	@go run cmd/migrate/main.go
-
+migrate create -ext sql -dir internal/constant/query/schemas -tz "UTC" $(args)
 # Run the application
 run:
 	@echo "Starting the application..."

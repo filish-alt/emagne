@@ -31,6 +31,16 @@ func GetUserID(c *gin.Context) string {
 	return ""
 }
 
+// GetUserRole retrieves the user Role from the Gin context.
+func GetUserRole(c *gin.Context) string {
+	if value, exists := c.Get(userRoleContextKey); exists {
+		if role, ok := value.(string); ok {
+			return role
+		}
+	}
+	return ""
+}
+
 // UserIDFromHeader sets the user ID on the context if provided through the X-User or X-User-ID header.
 func UserIDFromHeader() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -44,7 +54,3 @@ func UserIDFromHeader() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-
-
-

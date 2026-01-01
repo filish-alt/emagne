@@ -57,10 +57,20 @@ func (ns NullRole) Value() (driver.Value, error) {
 	return string(ns.Role), nil
 }
 
+type CategoryAttribute struct {
+	ID         uuid.UUID    `json:"id"`
+	CategoryID uuid.UUID    `json:"category_id"`
+	Name       string       `json:"name"`
+	DataType   string       `json:"data_type"`
+	IsRequired sql.NullBool `json:"is_required"`
+	CreatedAt  sql.NullTime `json:"created_at"`
+}
+
 type ItemCategory struct {
 	ID          uuid.UUID      `json:"id"`
 	Name        string         `json:"name"`
 	Description sql.NullString `json:"description"`
+	CreatedAt   sql.NullTime   `json:"created_at"`
 }
 
 type Transaction struct {
@@ -83,6 +93,14 @@ type Transaction struct {
 	UpdatedAt        sql.NullTime    `json:"updated_at"`
 }
 
+type TransactionItemAttribute struct {
+	ID            uuid.UUID    `json:"id"`
+	TransactionID uuid.UUID    `json:"transaction_id"`
+	AttributeID   uuid.UUID    `json:"attribute_id"`
+	Value         string       `json:"value"`
+	CreatedAt     sql.NullTime `json:"created_at"`
+}
+
 type User struct {
 	ID           uuid.UUID      `json:"id"`
 	Email        string         `json:"email"`
@@ -93,4 +111,5 @@ type User struct {
 	IsVerified   sql.NullBool   `json:"is_verified"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
+	Role         string         `json:"role"`
 }

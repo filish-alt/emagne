@@ -11,26 +11,25 @@ import (
 	"github.com/filagot/emagne/internal/module"
 	"github.com/filagot/emagne/internal/storage"
 	"github.com/filagot/emagne/pkg/utils"
-    "github.com/google/uuid"
-	
+	"github.com/google/uuid"
 )
 
 // AuthModule implements the module.AuthModule interface
-type AuthModule struct {
+type authModule struct {
 	authStorage storage.AuthStorage
 	config      *config.Config
 }
 
 // NewAuthModule creates a new auth module instance
 func NewAuthModule(authStorage storage.AuthStorage, cfg *config.Config) module.AuthModule {
-	return &AuthModule{
+	return &authModule{
 		authStorage: authStorage,
 		config:      cfg,
 	}
 }
 
 // Register handles user registration
-func (m *AuthModule) Register(ctx context.Context, req *dto.RegisterRequest) (*dto.AuthResponse, error) {
+func (m *authModule) Register(ctx context.Context, req *dto.RegisterRequest) (*dto.AuthResponse, error) {
 	// Check if user already exists
 	_, err := m.authStorage.GetUserByEmail(ctx, req.Email)
 	if err == nil {
@@ -56,6 +55,7 @@ func (m *AuthModule) Register(ctx context.Context, req *dto.RegisterRequest) (*d
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Phone:        phone,
+		Role:         "user",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -66,7 +66,7 @@ func (m *AuthModule) Register(ctx context.Context, req *dto.RegisterRequest) (*d
     if err != nil {
         return nil, fmt.Errorf("invalid user id: %w", err)
     }
-    token, err := utils.GenerateToken(userUUID, user.Email, "user", m.config.JWTSecret, m.config.JWTExpiration)
+    token, err := utils.GenerateToken(userUUID, user.Email, user.Role, m.config.JWTSecret, m.config.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -83,12 +83,13 @@ func (m *AuthModule) Register(ctx context.Context, req *dto.RegisterRequest) (*d
 			IsVerified:   user.IsVerified,
 			CreatedAt:    user.CreatedAt,
 			UpdatedAt:    user.UpdatedAt,
+			Role:         user.Role,
 		},
 	}, nil
 }
 
 // Login handles user login
-func (m *AuthModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.AuthResponse, error) {
+func (m *authModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.AuthResponse, error) {
 	// Get user by email
 	user, err := m.authStorage.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -105,7 +106,7 @@ func (m *AuthModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Aut
     if err != nil {
         return nil, fmt.Errorf("invalid user id: %w", err)
     }
-    token, err := utils.GenerateToken(userUUID, user.Email, "user", m.config.JWTSecret, m.config.JWTExpiration)
+    token, err := utils.GenerateToken(userUUID, user.Email, user.Role, m.config.JWTSecret, m.config.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -122,12 +123,13 @@ func (m *AuthModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Aut
 			IsVerified:   user.IsVerified,
 			CreatedAt:    user.CreatedAt,
 			UpdatedAt:    user.UpdatedAt,
+			Role:         user.Role,
 		},
 	}, nil
 }
 
 // UpdateUser updates the authenticated user's profile
-func (m *AuthModule) UpdateUser(ctx context.Context, userID string, req *dto.UpdateUserRequest) (*dto.User, error) {
+func (m *authModule) UpdateUser(ctx context.Context, userID string, req *dto.UpdateUserRequest) (*dto.User, error) {
 	if userID == "" {
 		return nil, errors.New("user id is required")
 	}
@@ -160,7 +162,7 @@ func (m *AuthModule) UpdateUser(ctx context.Context, userID string, req *dto.Upd
 }
 
 // GetUserByID retrieves a user by ID
-func (m *AuthModule) GetUserByID(ctx context.Context, userID string) (*dto.User, error) {
+func (m *authModule) GetUserByID(ctx context.Context, userID string) (*dto.User, error) {
 	if userID == "" {
 		return nil, errors.New("user id is required")
 	}
@@ -172,4 +174,3 @@ func (m *AuthModule) GetUserByID(ctx context.Context, userID string) (*dto.User,
 
 	return user, nil
 }
-

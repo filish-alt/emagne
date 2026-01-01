@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS item_catagory;
+DROP TABLE IF EXISTS item_categories;

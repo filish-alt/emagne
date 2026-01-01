@@ -11,14 +11,14 @@ import (
 
 type AuthMiddleware interface {
 	Authorize() gin.HandlerFunc
-
+	RequireRole(role string) gin.HandlerFunc
 }
 
-type authMiddleware struct{
+type authMiddleware struct {
 	cfg *config.Config
-}	
+}
 
-func InitAuthMiddleware(cfg *config.Config) AuthMiddleware{
+func InitAuthMiddleware(cfg *config.Config) AuthMiddleware {
 	return &authMiddleware{
 		cfg: cfg,
 	}
@@ -53,6 +53,18 @@ func (a *authMiddleware) Authorize() gin.HandlerFunc {
 		// Set user information in context as strings for easy retrieval
 		SetUserContext(c, claims.UserID.String(), claims.Email, claims.Role)
 
+		c.Next()
+	}
+}
+
+func (a *authMiddleware) RequireRole(requiredRole string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRole := GetUserRole(c)
+		if userRole != requiredRole {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: insufficient permissions"})
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

@@ -21,6 +21,6 @@ CREATE TABLE transactions (
 
     CONSTRAINT fk_item_category
         FOREIGN KEY (item_category_id)
-        REFERENCES item_category(id)
+        REFERENCES item_categories(id)
         ON DELETE CASCADE
 );

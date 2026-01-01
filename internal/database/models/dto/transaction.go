@@ -6,18 +6,33 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type AttributeValue struct {
+	AttributeID uuid.UUID `json:"attribute_id"`
+	Value       string    `json:"value"`
+}
+
 type CreateTransaction struct {
-	Title            string          `json:"title"`
-	Role             constant.Role   `json:"role"`
-	Currency         string          `json:"currency"`
-	InspectionPeriod string          `json:"inspection_period"`
-	ItemCategoryId   uuid.UUID       `json:"item_catagory_id"`
-	ItemName         string          `json:"item_name"`
-	ItemDescription  string          `json:"item_description"`
-	Price            decimal.Decimal `json:"price"`
-	ShippingMethod   string          `json:"shipping_method"`
-	SellerEmail      string          `json:"seller_email"`
-	SellerPhone      string          `json:"seller_phone"`
-	BuyerEmail       string          `json:"buyer_email"`
-	BuyerPhone       string          `json:"buyer_phone"`
+	Title            string           `json:"title"`
+	Role             constant.Role    `json:"role"`
+	Currency         string           `json:"currency"`
+	InspectionPeriod string           `json:"inspection_period"`
+	ItemCategoryId   uuid.UUID        `json:"item_catagory_id"`
+	ItemName         string           `json:"item_name"`
+	ItemDescription  string           `json:"item_description"`
+	Price            decimal.Decimal  `json:"price"`
+	ShippingMethod   string           `json:"shipping_method"`
+	SellerEmail      string           `json:"seller_email"`
+	SellerPhone      string           `json:"seller_phone"`
+	BuyerEmail       string           `json:"buyer_email"`
+	BuyerPhone       string           `json:"buyer_phone"`
+	Attributes       []AttributeValue `json:"attributes"`
+}
+
+type UpdateTransactionStatusRequest struct {
+	Status string `json:"status" binding:"required"`
+}
+
+type AddTransactionAttributeRequest struct {
+	AttributeID uuid.UUID `json:"attribute_id" binding:"required"`
+	Value       string    `json:"value" binding:"required"`
 }

@@ -11,6 +11,7 @@ type CreateUserParams struct {
 	FirstName    string
 	LastName     string
 	Phone        sql.NullString
+	Role         string
 }
 
 // UpdateUserParams represents parameters for updating a user
@@ -33,6 +34,7 @@ type User struct {
 	IsVerified   sql.NullBool   `json:"is_verified"`
 	CreatedAt    string         `json:"created_at"`
 	UpdatedAt    string         `json:"updated_at"`
+	Role         string         `json:"role"`
 }
 
 // RegisterRequest represents user registration request

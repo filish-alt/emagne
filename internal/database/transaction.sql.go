@@ -97,7 +97,7 @@ SELECT
     ic.name AS item_category_name,
     ic.description AS item_category_description
 FROM transactions t
-JOIN item_category ic ON ic.id = t.item_category_id
+JOIN item_categories ic ON ic.id = t.item_category_id
 WHERE t.id = $1
 LIMIT 1
 `
@@ -157,7 +157,7 @@ SELECT
     ic.name AS item_category_name,
     ic.description AS item_category_description
 FROM transactions t
-JOIN item_category ic ON ic.id = t.item_category_id
+JOIN item_categories ic ON ic.id = t.item_category_id
 WHERE t.item_category_id = $1
 ORDER BY t.created_at DESC
 LIMIT $2 OFFSET $3
@@ -269,3 +269,14 @@ func (q *Queries) UpdateTransactionStatus(ctx context.Context, arg UpdateTransac
 	)
 	return i, err
 }
+
+const deleteTransaction = `-- name: DeleteTransaction :exec
+DELETE FROM transactions
+WHERE id = $1
+`
+
+func (q *Queries) DeleteTransaction(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteTransaction, id)
+	return err
+}
+

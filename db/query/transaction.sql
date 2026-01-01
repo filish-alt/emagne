@@ -24,7 +24,7 @@ SELECT
     ic.name AS item_category_name,
     ic.description AS item_category_description
 FROM transactions t
-JOIN item_category ic ON ic.id = t.item_category_id
+JOIN item_categories ic ON ic.id = t.item_category_id
 WHERE t.id = $1
 LIMIT 1;
 
@@ -34,7 +34,7 @@ SELECT
     ic.name AS item_category_name,
     ic.description AS item_category_description
 FROM transactions t
-JOIN item_category ic ON ic.id = t.item_category_id
+JOIN item_categories ic ON ic.id = t.item_category_id
 WHERE t.item_category_id = $1
 ORDER BY t.created_at DESC
 LIMIT $2 OFFSET $3;
@@ -47,3 +47,6 @@ SET
 WHERE id = $1
 RETURNING *;
 
+-- name: DeleteTransaction :exec
+DELETE FROM transactions
+WHERE id = $1;

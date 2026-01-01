@@ -11,16 +11,26 @@ import (
 )
 
 type Querier interface {
+	CreateCategoryAttribute(ctx context.Context, arg CreateCategoryAttributeParams) (CategoryAttribute, error)
 	CreateItemCategory(ctx context.Context, arg CreateItemCategoryParams) (ItemCategory, error)
 	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteCategoryAttribute(ctx context.Context, id uuid.UUID) error
 	DeleteItemCategory(ctx context.Context, id uuid.UUID) error
+	DeleteTransactionItemAttributes(ctx context.Context, transactionID uuid.UUID) error
+	DeleteTransaction(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	GetCategoryAttribute(ctx context.Context, arg GetCategoryAttributeParams) (CategoryAttribute, error)
+	GetEscrowItemAttribute(ctx context.Context, arg GetEscrowItemAttributeParams) (TransactionItemAttribute, error)
 	GetItemCategoryByID(ctx context.Context, id uuid.UUID) (ItemCategory, error)
+	GetItemCategoryByName(ctx context.Context, name string) (ItemCategory, error)
 	GetTransactionWithCategory(ctx context.Context, id uuid.UUID) (GetTransactionWithCategoryRow, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	InsertTransactionItemAttribute(ctx context.Context, arg InsertTransactionItemAttributeParams) (TransactionItemAttribute, error)
+	ListCategoryAttributes(ctx context.Context, categoryID uuid.UUID) ([]CategoryAttribute, error)
 	ListItemCategories(ctx context.Context) ([]ItemCategory, error)
+	ListTransactionItemAttributes(ctx context.Context, transactionID uuid.UUID) ([]ListTransactionItemAttributesRow, error)
 	ListTransactionsByCategory(ctx context.Context, arg ListTransactionsByCategoryParams) ([]ListTransactionsByCategoryRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	UpdateItemCategory(ctx context.Context, arg UpdateItemCategoryParams) (ItemCategory, error)

@@ -13,12 +13,12 @@ import (
 )
 
 const createItemCategory = `-- name: CreateItemCategory :one
-INSERT INTO item_category (
+INSERT INTO item_categories (
     name,
     description
 ) VALUES (
     $1, $2
-) RETURNING id, name, description
+) RETURNING id, name, description, created_at
 `
 
 type CreateItemCategoryParams struct {
@@ -29,12 +29,17 @@ type CreateItemCategoryParams struct {
 func (q *Queries) CreateItemCategory(ctx context.Context, arg CreateItemCategoryParams) (ItemCategory, error) {
 	row := q.db.QueryRow(ctx, createItemCategory, arg.Name, arg.Description)
 	var i ItemCategory
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
 const deleteItemCategory = `-- name: DeleteItemCategory :exec
-DELETE FROM item_category
+DELETE FROM item_categories
 WHERE id = $1
 `
 
@@ -44,8 +49,8 @@ func (q *Queries) DeleteItemCategory(ctx context.Context, id uuid.UUID) error {
 }
 
 const getItemCategoryByID = `-- name: GetItemCategoryByID :one
-SELECT id, name, description
-FROM item_category
+SELECT id, name, description, created_at
+FROM item_categories
 WHERE id = $1
 LIMIT 1
 `
@@ -53,13 +58,36 @@ LIMIT 1
 func (q *Queries) GetItemCategoryByID(ctx context.Context, id uuid.UUID) (ItemCategory, error) {
 	row := q.db.QueryRow(ctx, getItemCategoryByID, id)
 	var i ItemCategory
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getItemCategoryByName = `-- name: GetItemCategoryByName :one
+SELECT id, name, description, created_at
+FROM item_categories
+WHERE name = $1
+`
+
+func (q *Queries) GetItemCategoryByName(ctx context.Context, name string) (ItemCategory, error) {
+	row := q.db.QueryRow(ctx, getItemCategoryByName, name)
+	var i ItemCategory
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
 const listItemCategories = `-- name: ListItemCategories :many
-SELECT id, name, description
-FROM item_category
+SELECT id, name, description, created_at
+FROM item_categories
 ORDER BY name ASC
 `
 
@@ -72,7 +100,12 @@ func (q *Queries) ListItemCategories(ctx context.Context) ([]ItemCategory, error
 	items := []ItemCategory{}
 	for rows.Next() {
 		var i ItemCategory
-		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -84,12 +117,12 @@ func (q *Queries) ListItemCategories(ctx context.Context) ([]ItemCategory, error
 }
 
 const updateItemCategory = `-- name: UpdateItemCategory :one
-UPDATE item_category
+UPDATE item_categories
 SET
     name = COALESCE($2, name),
     description = COALESCE($3, description)
 WHERE id = $1
-RETURNING id, name, description
+RETURNING id, name, description, created_at
 `
 
 type UpdateItemCategoryParams struct {
@@ -101,6 +134,11 @@ type UpdateItemCategoryParams struct {
 func (q *Queries) UpdateItemCategory(ctx context.Context, arg UpdateItemCategoryParams) (ItemCategory, error) {
 	row := q.db.QueryRow(ctx, updateItemCategory, arg.ID, arg.Name, arg.Description)
 	var i ItemCategory
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+	)
 	return i, err
 }

@@ -1,3 +1,8 @@
+databases:
+  - name: emagne-db
+    databaseName: emagne
+    user: emagne_user
+
 services:
   - type: web
     name: emagne
@@ -6,6 +11,8 @@ services:
     startCommand: ./app
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: emagne-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true

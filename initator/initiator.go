@@ -32,7 +32,7 @@ func NewApp() (*App, error) {
 	cfg := config.Load()
 
 	// Run database migrations first
-	//InitiateMigration(cfg)
+	InitiateMigration(cfg)
 
 	// Initialize database
 	log.Println("Initializing database...")

@@ -2,6 +2,7 @@ package initator
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -12,8 +13,11 @@ import (
 	"github.com/filagot/emagne/initator/domain"
 	"github.com/filagot/emagne/initator/foundation"
 	"github.com/filagot/emagne/internal/config"
+	db "github.com/filagot/emagne/internal/database"
 	"github.com/filagot/emagne/internal/database/persistancedb"
+	"github.com/filagot/emagne/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v4"
 )
 
 // App represents the application dependencies
@@ -38,6 +42,9 @@ func NewApp() (*App, error) {
 	log.Println("Initializing database...")
 	pgxConn := foundation.InitDB(cfg.DBSource)
 	log.Println("Database initialized")
+
+	// Seed super admin
+	SeedSuperAdmin(pgxConn)
 
 	// Initialize persistence layer
 
@@ -105,6 +112,49 @@ func InitiateMigration(cfg *config.Config) {
 	foundation.UpMigration(m)
 
 	log.Println("Database migration completed successfully!")
+}
+
+// SeedSuperAdmin seeds the super admin user if not exists
+func SeedSuperAdmin(conn db.DBTX) {
+	q := db.New(conn)
+	ctx := context.Background()
+	adminEmail := "admin@emagne.com"
+
+	// Check if admin already exists
+	_, err := q.GetUserByEmail(ctx, adminEmail)
+	if err == nil {
+		log.Println("Super admin already exists")
+		return
+	}
+
+	if err != pgx.ErrNoRows {
+		// Log error but don't stop startup
+		log.Printf("Error checking for super admin: %v", err)
+	}
+
+	log.Println("Creating super admin user...")
+	password := "admin123"
+	hashedPassword, err := utils.HashPassword(password, 10)
+	if err != nil {
+		log.Printf("Failed to hash password for super admin: %v", err)
+		return
+	}
+
+	arg := db.CreateUserParams{
+		Email:        adminEmail,
+		PasswordHash: hashedPassword,
+		FirstName:    "Super",
+		LastName:     "Admin",
+		Phone:        sql.NullString{Valid: false},
+		Role:         "super_admin",
+	}
+
+	_, err = q.CreateUser(ctx, arg)
+	if err != nil {
+		log.Printf("Failed to create super admin: %v", err)
+		return
+	}
+	log.Println("Super admin created successfully!")
 }
 
 // Start starts the application server

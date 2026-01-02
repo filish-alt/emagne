@@ -40,6 +40,14 @@ func InitRoutes(
                 middleware.UserIDFromHeader(),
             },
         },
+          {
+            Method:  "DELETE",
+            Path:    "/users/:id",
+            Handler: handler.DeleteUser,
+            Middlewares: []gin.HandlerFunc{
+                authMiddleware.Authorize(),
+            },
+        },
     }
     routes.RegisterRoute(grp, authRoutes)
 }

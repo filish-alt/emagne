@@ -15,6 +15,7 @@ type AuthModule interface {
 	Login(ctx context.Context, req *dto.LoginRequest) (*dto.AuthResponse, error)
 	UpdateUser(ctx context.Context, userID string, req *dto.UpdateUserRequest) (*dto.User, error)
 	GetUserByID(ctx context.Context, userID string) (*dto.User, error)
+	DeleteUser(ctx context.Context, userID string) error
 }
 
 type Catagory interface {

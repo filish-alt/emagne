@@ -62,11 +62,11 @@ func (m *authModule) Register(ctx context.Context, req *dto.RegisterRequest) (*d
 	}
 
 	// Generate token
-    userUUID, err := uuid.Parse(user.ID)
-    if err != nil {
-        return nil, fmt.Errorf("invalid user id: %w", err)
-    }
-    token, err := utils.GenerateToken(userUUID, user.Email, user.Role, m.config.JWTSecret, m.config.JWTExpiration)
+	userUUID, err := uuid.Parse(user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user id: %w", err)
+	}
+	token, err := utils.GenerateToken(userUUID, user.Email, user.Role, m.config.JWTSecret, m.config.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -102,11 +102,11 @@ func (m *authModule) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Aut
 	}
 
 	// Generate token
-    userUUID, err := uuid.Parse(user.ID)
-    if err != nil {
-        return nil, fmt.Errorf("invalid user id: %w", err)
-    }
-    token, err := utils.GenerateToken(userUUID, user.Email, user.Role, m.config.JWTSecret, m.config.JWTExpiration)
+	userUUID, err := uuid.Parse(user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user id: %w", err)
+	}
+	token, err := utils.GenerateToken(userUUID, user.Email, user.Role, m.config.JWTSecret, m.config.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -173,4 +173,13 @@ func (m *authModule) GetUserByID(ctx context.Context, userID string) (*dto.User,
 	}
 
 	return user, nil
+}
+
+// DeleteUser deletes a user by ID
+func (m *authModule) DeleteUser(ctx context.Context, userID string) error {
+	if userID == "" {
+		return errors.New("user id is required")
+	}
+
+	return m.authStorage.DeleteUser(ctx, userID)
 }

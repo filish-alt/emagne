@@ -141,3 +141,42 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, updatedUser)
 }
+
+// DeleteUser godoc
+// @Summary Delete user
+// @Description Delete user by ID (Super Admin or Self)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/users/{id} [delete]
+func (h *Handler) DeleteUser(c *gin.Context) {
+	targetUserID := c.Param("id")
+	currentUserID := middleware.GetUserID(c)
+	currentUserRole := middleware.GetUserRole(c)
+
+	if targetUserID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user id is required"})
+		return
+	}
+
+	// Check permissions
+	// Allow if super_admin OR if deleting self
+	if currentUserRole != "super_admin" && currentUserID != targetUserID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: insufficient permissions"})
+		return
+	}
+
+	if err := h.authModule.DeleteUser(c.Request.Context(), targetUserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}

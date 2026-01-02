@@ -96,7 +96,7 @@ func InitiateMigration(cfg *config.Config) {
 	log.Println("Starting database migration...")
 
 	// Set migration path
-	migrationPath := "db/migrations"
+	migrationPath := "../db/migrations"
 
 	// Create migration instance
 	m := foundation.InitiateMigration(migrationPath, cfg.DBSource)

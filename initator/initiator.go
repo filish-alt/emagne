@@ -62,22 +62,59 @@ func NewApp() (*App, error) {
 	//server := gin.New()
 	// Add CORS middleware
 	router.Use(func(c *gin.Context) {
-		origin := cfg.FrontendOrigin
-		if origin == "" {
-			origin = "*"
+		reqOrigin := c.GetHeader("Origin")
+		allowedOrigin := cfg.FrontendOrigin
+		if allowedOrigin == "" {
+			allowedOrigin = "*"
 		}
-		c.Header("Access-Control-Allow-Origin", origin)
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		if origin != "*" {
-			c.Header("Vary", "Origin")
+
+		// Allow specific origin or wildcard
+		if allowedOrigin == "*" {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Credentials", "false")
+		} else {
+			// Use the configured origin; echo request origin if it matches
+			if reqOrigin == allowedOrigin {
+				c.Header("Access-Control-Allow-Origin", reqOrigin)
+			} else {
+				c.Header("Access-Control-Allow-Origin", allowedOrigin)
+			}
+			c.Header("Access-Control-Allow-Credentials", "true")
 		}
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
+
+		// Methods
+		requestMethod := c.GetHeader("Access-Control-Request-Method")
+		if requestMethod == "" {
+			requestMethod = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+		}
+		c.Header("Access-Control-Allow-Methods", requestMethod)
+
+		// Headers
+		requestHeaders := c.GetHeader("Access-Control-Request-Headers")
+		if requestHeaders == "" {
+			requestHeaders = "Authorization, Content-Type, Accept, Origin, X-Requested-With"
+		}
+		c.Header("Access-Control-Allow-Headers", requestHeaders)
+
+		// Expose common headers
+		c.Header("Access-Control-Expose-Headers", "Content-Type, Authorization")
+
+		// Cache preflight
+		c.Header("Access-Control-Max-Age", "86400")
+
+		// Vary for caches/proxies
+		c.Header("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers")
+
+		// Handle preflight
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
 			return
 		}
+
 		c.Next()
 	})
+	// Additional robust CORS handling
+	router.Use(corsMiddleware(cfg))
 	mainGroup := router.Group("/api")
 	// Setup routes using domain routing
 	domain.InitiateRouting(mainGroup, router, handler, cfg)
@@ -96,6 +133,50 @@ func NewApp() (*App, error) {
 		Router:      router,
 		Server:      srv,
 	}, nil
+}
+
+func corsMiddleware(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		reqOrigin := c.GetHeader("Origin")
+		allowedOrigin := cfg.FrontendOrigin
+		if allowedOrigin == "" {
+			allowedOrigin = "*"
+		}
+
+		if allowedOrigin == "*" {
+			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Credentials", "false")
+		} else {
+			if reqOrigin == allowedOrigin {
+				c.Header("Access-Control-Allow-Origin", reqOrigin)
+			} else {
+				c.Header("Access-Control-Allow-Origin", allowedOrigin)
+			}
+			c.Header("Access-Control-Allow-Credentials", "true")
+		}
+
+		requestMethod := c.GetHeader("Access-Control-Request-Method")
+		if requestMethod == "" {
+			requestMethod = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+		}
+		c.Header("Access-Control-Allow-Methods", requestMethod)
+
+		requestHeaders := c.GetHeader("Access-Control-Request-Headers")
+		if requestHeaders == "" {
+			requestHeaders = "Authorization, Content-Type, Accept, Origin, X-Requested-With"
+		}
+		c.Header("Access-Control-Allow-Headers", requestHeaders)
+
+		c.Header("Access-Control-Expose-Headers", "Content-Type, Authorization")
+		c.Header("Access-Control-Max-Age", "86400")
+		c.Header("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers")
+
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
+		c.Next()
+	}
 }
 
 // InitiateMigration runs database migrations

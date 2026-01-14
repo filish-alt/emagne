@@ -41,7 +41,7 @@ func main() {
 	}
 
 	log.Println("Creating super admin user...")
-
+ 
 	password := "admin123"
 	hashedPassword, err := utils.HashPassword(password, 10)
 	if err != nil {

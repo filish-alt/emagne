@@ -60,60 +60,7 @@ func NewApp() (*App, error) {
 	// Initialize Gin router
 	router := gin.New()
 	//server := gin.New()
-	// Add CORS middleware
-	router.Use(func(c *gin.Context) {
-		reqOrigin := c.GetHeader("Origin")
-		allowedOrigin := cfg.FrontendOrigin
-		if allowedOrigin == "" {
-			allowedOrigin = "*"
-		}
-
-		// Allow specific origin or wildcard
-		if allowedOrigin == "*" {
-			c.Header("Access-Control-Allow-Origin", "*")
-			c.Header("Access-Control-Allow-Credentials", "false")
-		} else {
-			// Use the configured origin; echo request origin if it matches
-			if reqOrigin == allowedOrigin {
-				c.Header("Access-Control-Allow-Origin", reqOrigin)
-			} else {
-				c.Header("Access-Control-Allow-Origin", allowedOrigin)
-			}
-			c.Header("Access-Control-Allow-Credentials", "true")
-		}
-
-		// Methods
-		requestMethod := c.GetHeader("Access-Control-Request-Method")
-		if requestMethod == "" {
-			requestMethod = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-		}
-		c.Header("Access-Control-Allow-Methods", requestMethod)
-
-		// Headers
-		requestHeaders := c.GetHeader("Access-Control-Request-Headers")
-		if requestHeaders == "" {
-			requestHeaders = "Authorization, Content-Type, Accept, Origin, X-Requested-With"
-		}
-		c.Header("Access-Control-Allow-Headers", requestHeaders)
-
-		// Expose common headers
-		c.Header("Access-Control-Expose-Headers", "Content-Type, Authorization")
-
-		// Cache preflight
-		c.Header("Access-Control-Max-Age", "86400")
-
-		// Vary for caches/proxies
-		c.Header("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers")
-
-		// Handle preflight
-		if c.Request.Method == http.MethodOptions {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-
-		c.Next()
-	})
-	// Additional robust CORS handling
+	// Global CORS for all API routes
 	router.Use(corsMiddleware(cfg))
 	mainGroup := router.Group("/api")
 	// Setup routes using domain routing

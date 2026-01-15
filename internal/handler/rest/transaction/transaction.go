@@ -10,6 +10,7 @@ import (
 
 	"github.com/filagot/emagne/internal/database/models/dto"
 	"github.com/filagot/emagne/internal/handler/rest"
+	"github.com/filagot/emagne/internal/handler/middleware"
 	"github.com/filagot/emagne/internal/module/transaction"
 )
 
@@ -93,6 +94,116 @@ func (h *Handler) UpdateTransactionStatus(c *gin.Context) {
 	tx, err := h.mod.UpdateStatus(c.Request.Context(), id, status)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tx)
+}
+
+func (h *Handler) ConfirmTransaction(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	email := middleware.GetUserEmail(c)
+	if email == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found"})
+		return
+	}
+	tx, err := h.mod.ConfirmBySeller(c.Request.Context(), id, email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tx)
+}
+
+func (h *Handler) MarkPaid(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	email := middleware.GetUserEmail(c)
+	if email == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found"})
+		return
+	}
+	tx, err := h.mod.MarkPaid(c.Request.Context(), id, email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tx)
+}
+
+func (h *Handler) MarkShipped(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	email := middleware.GetUserEmail(c)
+	if email == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found"})
+		return
+	}
+	tx, err := h.mod.MarkShipped(c.Request.Context(), id, email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tx)
+}
+
+func (h *Handler) MarkDelivered(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	email := middleware.GetUserEmail(c)
+	if email == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user email not found"})
+		return
+	}
+	tx, err := h.mod.MarkDelivered(c.Request.Context(), id, email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tx)
+}
+
+func (h *Handler) StartInspection(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	tx, err := h.mod.StartInspection(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, tx)
+}
+
+func (h *Handler) CloseTransaction(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+	tx, err := h.mod.MarkClosed(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, tx)

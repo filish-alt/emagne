@@ -24,7 +24,7 @@ func Load() *Config {
 		JWTSecret:      getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
 		JWTExpiration:  24 * time.Hour,
 		PasswordCost:   12,
-		FrontendOrigin: getEnv("FRONTEND_ORIGIN", "http://localhost:3000"),
+		FrontendOrigin: getEnv("FRONTEND_ORIGIN", ""),
 	}
 }
 

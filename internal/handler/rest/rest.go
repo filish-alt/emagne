@@ -27,13 +27,19 @@ type CategoryHandler interface {
 }
 
 type TransactionHandler interface {
-	CreateTransaction(c *gin.Context)
-	GetTransaction(c *gin.Context)
-	ListTransactionsByCategory(c *gin.Context)
-	UpdateTransactionStatus(c *gin.Context)
+    CreateTransaction(c *gin.Context)
+    GetTransaction(c *gin.Context)
+    ListTransactionsByCategory(c *gin.Context)
+    UpdateTransactionStatus(c *gin.Context)
 
-	AddTransactionAttribute(c *gin.Context)
-	ListTransactionAttributes(c *gin.Context)
-	GetTransactionAttribute(c *gin.Context)
-	DeleteTransactionAttributes(c *gin.Context)
+    AddTransactionAttribute(c *gin.Context)
+    ListTransactionAttributes(c *gin.Context)
+    GetTransactionAttribute(c *gin.Context)
+    DeleteTransactionAttributes(c *gin.Context)
+    ConfirmTransaction(c *gin.Context)
+    MarkPaid(c *gin.Context)
+    MarkShipped(c *gin.Context)
+    MarkDelivered(c *gin.Context)
+    StartInspection(c *gin.Context)
+    CloseTransaction(c *gin.Context)
 }

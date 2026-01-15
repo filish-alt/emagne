@@ -31,6 +31,16 @@ func GetUserID(c *gin.Context) string {
 	return ""
 }
 
+// GetUserEmail retrieves the user email from the Gin context.
+func GetUserEmail(c *gin.Context) string {
+	if value, exists := c.Get(userEmailContextKey); exists {
+		if email, ok := value.(string); ok {
+			return email
+		}
+	}
+	return ""
+}
+
 // GetUserRole retrieves the user Role from the Gin context.
 func GetUserRole(c *gin.Context) string {
 	if value, exists := c.Get(userRoleContextKey); exists {
